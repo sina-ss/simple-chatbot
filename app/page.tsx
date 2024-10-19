@@ -1,44 +1,39 @@
 "use client";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useChat } from "ai/react";
 import { cn } from "./lib/utils";
 import { TextEffect } from "./components/TextEffect";
 
 export default function Chat() {
   const { messages, input, handleInputChange, handleSubmit, data } = useChat();
-  const messagesEndRef = useRef(null);
-  const chatContainerRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleScroll = (e) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.target;
-    if (scrollHeight - scrollTop === clientHeight) {
-      // User has scrolled to the bottom
-      e.target.dataset.autoScroll = "true";
-    } else {
-      e.target.dataset.autoScroll = "false";
-    }
-  };
-
-  useEffect(() => {
-    if (chatContainerRef.current?.dataset.autoScroll === "true") {
+    if (shouldAutoScroll) {
       scrollToBottom();
     }
-  }, [messages]);
+  }, [messages, shouldAutoScroll]);
+
+  const handleScroll = () => {
+    if (chatContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+      const isScrolledToBottom = scrollHeight - scrollTop <= clientHeight + 100; // Adding a small threshold
+      setShouldAutoScroll(isScrolledToBottom);
+    }
+  };
 
   return (
     <main className="flex flex-col w-full gap-5 mt-10">
       <section
         ref={chatContainerRef}
         onScroll={handleScroll}
-        className="w-full h-full py-2 bg-[#1A1A1A] rounded-xl overflow-y-auto shadow-lg relative"
+        className="w-full h-[calc(100vh-200px)] py-2 bg-[#1A1A1A] rounded-xl overflow-y-auto shadow-lg relative"
       >
         <div className="flex flex-col px-6 items-center h-full overflow-y-auto pt-10">
           {messages.length > 0 ? (
@@ -65,17 +60,17 @@ export default function Chat() {
               <p className="text-white text-[1.2rem] text-[700]">
                 هر سوالی که درباره{" "}
                 <span className="text-[#85CCF4]">
-                  وضعیت اینترنت، راه‌ حل‌ها، اختلالات
+                  سامانه پالیور، دامنه‌های تست شده، اپراتورها
                 </span>{" "}
                 و یا هر مورد مرتبط دیگر دارید، از من بپرسید
               </p>
               <div className="text-white flex flex-col gap-3">
                 <p className="mb-3">برای مثال:</p>
                 <p className="p-3 bg-[#262626] rounded-xl">
-                  اختلال کاهش سرعت دانلود برای چیست؟
+                  چه اپراتورای دارای کمترین مشکل است؟
                 </p>
                 <p className="p-3 bg-[#262626] rounded-xl">
-                  راه حل مشکل افزایش پینگ چیست
+                  روش‌های تست چگونه هستند؟
                 </p>
               </div>
             </div>
